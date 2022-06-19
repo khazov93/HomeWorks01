@@ -8,14 +8,18 @@ public class HW01  {
 
         Team team = new Team("Best", people);
 
-        Course marafon = new Course(1000, 500);
+        Challenge[] challenges = new Challenge[2];
 
+        Course marafon = new Course(challenges, 1000, 500);
 
         String info = marafon.personInfo(team);
         System.out.println(info);
 
         String result = marafon.doIt1(team);
         System.out.println(result);
+
+        String result2 = marafon.doIt2(team);
+        System.out.println(result2);
 
     }
 

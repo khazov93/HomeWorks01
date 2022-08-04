@@ -1,5 +1,6 @@
 package HomeWork07;
 
+import HomeWork07.Entity.WeatherData;
 import HomeWork07.FiveDays.FiveDays;
 import HomeWork07.WeatherResponse.WeatherResponse;
 import HomeWork07.enums.Periods;
@@ -12,9 +13,10 @@ import okhttp3.Response;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.sql.SQLException;
 import java.util.List;
 
-public class AccuWeatherProvider  implements WeatherProvider {
+public class AccuWeatherProvider implements WeatherProvider {
 
     private static final String BASE_HOST = "dataservice.accuweather.com";
     private static final String FORECAST_ENDPOINT = "forecasts";
@@ -26,6 +28,9 @@ public class AccuWeatherProvider  implements WeatherProvider {
 
     private final OkHttpClient client = new OkHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    WeatherData weatherData = new WeatherData();
+    DatabaseRepositorySQLiteImpl databaseRepositorySQLite = new DatabaseRepositorySQLiteImpl();
 
     @Override
     public void getWeather(Periods periods) throws IOException {
@@ -54,6 +59,20 @@ public class AccuWeatherProvider  implements WeatherProvider {
             System.out.println("Weather text: " + weatherResponseList.get(0).getWeatherText() +
                     ", Temperature :" + weatherResponseList.get(0).getTemperature().getMetric().getValue()+weatherResponseList.get(0).getTemperature().getMetric().getUnit());
 
+            weatherData.setCity(ApplicationGlobalState.getInstance().getSelectedCity());
+            weatherData.setLocalDate(weatherResponseList.get(0).getLocalObservationDateTime());
+            weatherData.setText(weatherResponseList.get(0).getWeatherText());
+            weatherData.setTemperature(weatherResponseList.get(0).getTemperature().getMetric().getValue());
+
+
+            //Проверка
+            //System.out.println(weatherData.getCity()+weatherData.getLocalDate()+weatherData.getText()+weatherData.getTemperature());
+            try {
+                databaseRepositorySQLite.saveWeatherData(weatherData);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
 
         } else if (periods.equals(Periods.FIVE_DAYS)) {
 
@@ -81,17 +100,37 @@ public class AccuWeatherProvider  implements WeatherProvider {
             StringReader reader2 = new StringReader(response1);
             FiveDays fiveDaysresponce = objectMapper1.readValue(reader2, FiveDays.class);
 
+
+
             for (int i = 0; i<5; i++)
             {
                 System.out.println("В городе: " + ApplicationGlobalState.getInstance().getSelectedCity() +
-                    ", дата: " +fiveDaysresponce.getDailyForecasts().get(i).getDate() +
-                  ", ожидается днём: " + fiveDaysresponce.getDailyForecasts().get(i).getDay().getIconPhrase() +
-                    ", температура: " + fiveDaysresponce.getDailyForecasts().get(i).getTemperature().getMaximum().getValue() +
-                    fiveDaysresponce.getDailyForecasts().get(i).getTemperature().getMaximum().getUnit());
-            }
+                        ", дата: " +fiveDaysresponce.getDailyForecasts().get(i).getDate() +
+                        ", ожидается днём: " + fiveDaysresponce.getDailyForecasts().get(i).getDay().getIconPhrase() +
+                        ", температура: " + fiveDaysresponce.getDailyForecasts().get(i).getTemperature().getMaximum().getValue() +
+                        fiveDaysresponce.getDailyForecasts().get(i).getTemperature().getMaximum().getUnit());
 
+                weatherData.setCity(ApplicationGlobalState.getInstance().getSelectedCity());
+                weatherData.setLocalDate(fiveDaysresponce.getDailyForecasts().get(i).getDate());
+                weatherData.setText(fiveDaysresponce.getDailyForecasts().get(i).getDay().getIconPhrase());
+                weatherData.setTemperature(fiveDaysresponce.getDailyForecasts().get(i).getTemperature().getMaximum().getValue());
+
+                // Проверка
+//                System.out.println(weatherData.getCity() + weatherData.getLocalDate() +
+//                        weatherData.getText() + weatherData.getTemperature());
+                //databaseRepositorySQLite.saveWeatherData();
+
+                try {
+                    databaseRepositorySQLite.saveWeatherData(weatherData);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+
     }
+
+
 
     public String detectCityKey() throws IOException {
         String selectedCity = ApplicationGlobalState.getInstance().getSelectedCity();

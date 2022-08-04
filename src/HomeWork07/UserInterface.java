@@ -8,7 +8,9 @@ public class UserInterface {
 
     private final Controller controller = new Controller();
 
+
     public void runApplication() {
+
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.println("Введите название города на английском языке");
@@ -17,10 +19,9 @@ public class UserInterface {
             setGlobalCity(city);
 
             System.out.println("Введите ответ: 1 - Получить текущую погоду, " +
-                    "2 - Получить погоду на следующие 5 дней, " +
+                    "2 - Получить погоду на следующие 5 дней, " + "3 - Получить БД, " +
                     "выход (exit) - завершить работу");
             String result = scanner.nextLine();
-
             checkIsExit(result);
 
             try {
@@ -35,6 +36,8 @@ public class UserInterface {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+
 
         }
     }
